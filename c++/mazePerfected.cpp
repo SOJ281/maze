@@ -13,8 +13,14 @@ using namespace std;
 
 #include <stdexcept>
 
+#include <tuple>
+//https://en.wikipedia.org/wiki/Hexagonal_Efficient_Coordinate_System
 pair<int, int> mp(int x, int y) {
     return make_pair(x,y);
+}
+
+tuple<int, int, int> mt(int a, int r, int c) {
+    return make_tuple(a, r, c);
 }
 
 void deleteEdge(map<pair<int, int>, vector<pair<int, int>>> * graph, pair<int, int> * first, pair<int, int> * second) {
@@ -42,39 +48,65 @@ int searchVector(vector<pair<int, int>> * array, pair<int, int> *(item)) {
     return 0;
 }
 
-map<pair<int, int>, vector<pair<int, int>>> graphGen(int xDim, int yDim) {
 
-    map<pair<int, int>, vector<pair<int, int>>> winStrats;
-    for (int x = 0; x < xDim; x++) {
-        for (int y = 0; y < yDim; y++) {
-            winStrats[mp(x,y)] = {};
+
+void deleteItem(vector<tuple<int, int, int>> * array, tuple<int, int, int> *item) {
+    (*array).erase(std::remove((*array).begin(), (*array).end(), (*item)), (*array).end());
+}
+
+int searchVector(vector<tuple<int, int, int>> * array, tuple<int, int, int> *(item)) {
+    for (int i = 0; i < (*array).size(); i++) {
+        if ((*item) == (*item)) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+
+void deleteEdge(map<tuple<int, int, int>, vector<tuple<int, int, int>>> * graph, tuple<int, int, int> * first, tuple<int, int, int> * second) {
+    (*graph)[(*first)].erase(remove((*graph)[(*first)].begin(), (*graph)[(*first)].end(), (*second)), (*graph)[(*first)].end());
+    (*graph)[(*second)].erase(remove((*graph)[(*second)].begin(), (*graph)[(*second)].end(), (*first)), (*graph)[(*second)].end());
+}
+
+map<tuple<int, int, int>, vector<tuple<int, int, int>>> graphGen(int xDim, int yDim) {
+    map<tuple<int, int, int>, vector<tuple<int, int, int>>> winStrats;
+
+    for (int a = 0; a < 2; a++) {
+        for (int r = 0; r < xDim; r++) {
+            for (int c = 0; c < yDim; c++) {
+                winStrats[mt(a,r,c)] = {};
+            }
         }
     }
 
-    for (int x = 0; x < xDim; x++) {
-        for (int y = 0; y < yDim; y++) {
-            //winStrats[make_pair(x,y)] = {};
-            
-            if (y>0) {
-                winStrats[mp(x,y)].push_back(mp(x,y-1));
-            }
-            if (y < yDim-1) {
-                winStrats[mp(x,y)].push_back(mp(x,y+1));
-            }
-            if (x > 0) {
-                winStrats[mp(x,y)].push_back(mp(x-1,y));
-            }
-            if (x < xDim-1) {
-                winStrats[mp(x,y)].push_back(mp(x+1,y));
-            }
-            /*
-            winStrats[mp(x,y)].push_back(mp(x,y-1));
-            winStrats[mp(x,y)].push_back(mp(x,y+1));
-            winStrats[mp(x,y)].push_back(mp(x-1,y));
-            winStrats[mp(x,y)].push_back(mp(x+1,y));
-            */
+    for (int a = 0; a < 2; a++) {
+        for (int r = 0; r < xDim; r++) {
+            for (int c = 0; c < yDim; c++) {
+                if (c > 0) {
+                    winStrats[mt(a,r,c)].push_back(mt(a,r,c-1));
+                }
+                if (c < yDim-1) {
+                    winStrats[mt(a,r,c)].push_back(mt(a,r,c+1));
+                }
 
-            shuffle(begin(winStrats[mp(x,y)]), end(winStrats[mp(x,y)]), default_random_engine { random_device {}()});
+
+                if (r > 0) {
+                    winStrats[mt(a,r,c)].push_back(mt(1-a, r-(1-a), c-(1-a)));
+                }
+                if (r < xDim-1) {
+                    winStrats[mt(a,r,c)].push_back(mt(1-a, r-(1-a), c+a));
+                }
+
+                if (r > 0) {
+                    winStrats[mt(a,r,c)].push_back(mt(1-a, r+a, c-(1-a)));
+                }
+                if (r < xDim-1) {
+                    winStrats[mt(a,r,c)].push_back(mt(1-a, r+a, c+a));
+                }
+
+                shuffle(begin(winStrats[mt(a,r,c)]), end(winStrats[mt(a,r,c)]), default_random_engine { random_device {}()});
+            }
         }
     }
     return winStrats;
@@ -136,7 +168,7 @@ void makePic(map<pair<int, int>, vector<pair<int, int>>> walls, int xDim, int yD
         }
     }
 }
-
+/*
 void makePic(map<pair<int, int>, vector<pair<int, int>>> walls, int xDim, int yDim, string name) {
     map<pair<int, int>, vector<pair<int, int>>> paths = graphGen(xDim, yDim);
     
@@ -195,100 +227,28 @@ void makePic(map<pair<int, int>, vector<pair<int, int>>> walls, int xDim, int yD
         }
     }
 }
+*/
 
-void mazeMakerPrim(map<pair<int, int>, vector<pair<int, int>>> * graph, pair<int, int> * location) {
-    pair<int, int> * currLoc = (pair<int, int>*)malloc(sizeof(pair<int, int>));
-    for (int i = 0; i < (*graph)[(*location)].size(); i++) {
 
-        if ((*graph)[(*graph)[(*location)].at(i)].size() < 3) { if ((rand() % 1001 > 5)) {continue;}}
-        * currLoc = (*graph)[(*location)].at(i);
+map<tuple<int, int, int>, vector<tuple<int, int, int>>> mazeMakerWilson(map<tuple<int, int, int>, vector<tuple<int, int, int>>> graph, int xDim, int yDim) {
+    map<tuple<int, int, int>, int> disconnBits;
+    vector<tuple<int, int, int>> disconnectedParts;
 
-        (*graph)[(*currLoc)].erase(remove((*graph)[(*currLoc)].begin(), (*graph)[(*currLoc)].end(), (*location)), (*graph)[(*currLoc)].end());
-        (*graph)[(*location)].erase((*graph)[(*location)].begin()+i);
-        mazeMakerPrim(graph, currLoc);
-        i--;
-    }
-    free(currLoc);
-}
-
-map<pair<int, int>, vector<pair<int, int>>> mazeMakerNonRec(map<pair<int, int>, vector<pair<int, int>>> graph, int xDim, int yDim) {
-
-    for (int x = 1; x < xDim-1; x++) {
-        for (int y = 1; y < yDim-1; y++) {
-            pair<int, int> location = mp(x,y);
-            shuffle(begin(graph[location]), end(graph[location]), default_random_engine { random_device {}()});
-
-            pair<int, int> currLoc = graph[location].at(0);
-            graph[currLoc].erase(remove(graph[currLoc].begin(), graph[currLoc].end(), location), graph[currLoc].end());
-            graph[location].erase(graph[location].begin());
-        }
-    }
-    return graph;
-}
-
-map<pair<int, int>, vector<pair<int, int>>> mazeMakerKruz(map<pair<int, int>, vector<pair<int, int>>> graph, int xDim, int yDim) {
-    map<pair<int, int>, int> disconnBits;
-    for (int x = 0; x < xDim; x++) {
-        for (int y = 0; y < yDim; y++) {
-            disconnBits[mp(x,y)] = 4;
-        }
-    }
-    disconnBits[mp(1,1)] = 0;
-    vector<pair<int, int>> connectedParts;
-    connectedParts.push_back(mp(1, 1));
-
-    shuffle(begin(connectedParts), end(connectedParts), default_random_engine { random_device {}()});
-    int found  = 0;
-    int eep = connectedParts.size();
-    while (1) {
-        found  = 0;
-        for (int i = 1; i < connectedParts.size()+1; i++) {
-            eep = connectedParts.size();
-            vector<pair<int, int>> cut = graph[connectedParts[eep-i]];
-            shuffle(begin(cut), end(cut), default_random_engine { random_device {}()});
-            for (auto loc : cut) {
-                if (disconnBits[loc] > 3) {
-                    deleteEdge(&graph, &loc, &connectedParts[eep-i]);
-                    disconnBits[loc]--;
-                    found = 1;
-                    connectedParts.push_back(loc);
-
-                }
-                if ((disconnBits[loc] > 2) && (rand() % 1001 < 5)) {
-                    deleteEdge(&graph, &loc, &connectedParts[eep-i]);
-                    disconnBits[loc]--;
-                    found = 1;
-                    connectedParts.push_back(loc);
-                }
-            }
-            if (found) {break;}
-        }
-        if (!found) {break;}
+    for(auto const& imap: graph) {
+        disconnBits[imap.first] = 1;
+        disconnectedParts.push_back(imap.first);
     }
 
-    return graph;
-}
-
-map<pair<int, int>, vector<pair<int, int>>> mazeMakerWilson(map<pair<int, int>, vector<pair<int, int>>> graph, int xDim, int yDim) {
-    map<pair<int, int>, int> disconnBits;
-    vector<pair<int, int>> disconnectedParts;
-    for (int x = 0; x < xDim; x++) {
-        for (int y = 0; y < yDim; y++) {
-            disconnBits[mp(x,y)] = 1;
-            disconnectedParts.push_back(mp(x, y));
-        }
-    }
-
-    disconnBits[mp(1,1)] = 0;
-    vector<pair<int, int>> connectedParts;
-    connectedParts.push_back(mp(1, 1));
+    disconnBits[mt(0,1,1)] = 0;
+    vector<tuple<int, int, int>> connectedParts;
+    connectedParts.push_back(mt(0,1,1));
     deleteItem(&disconnectedParts, &connectedParts[0]);
 
     int found  = 0;
     int startLoc = 0;
     int eep = connectedParts.size();
-    pair<int, int> start = mp(1, 1);
-    pair<int, int> end = mp(3, 3);
+    tuple<int, int, int> start = mt(0, 1, 1);
+    tuple<int, int, int> end = mt(0, 3, 3);
     
     while (disconnectedParts.size() > 0) {
         found = 0;
@@ -296,7 +256,7 @@ map<pair<int, int>, vector<pair<int, int>>> mazeMakerWilson(map<pair<int, int>, 
         start = connectedParts[startLoc];
 
         while (1) {
-            vector<pair<int, int>> cut = graph[start];
+            vector<tuple<int, int, int>> cut = graph[start];
             for (auto loc : cut) {
                 if (searchVector(&disconnectedParts, &loc)) {
                     deleteEdge(&graph, &loc, &start);
@@ -308,7 +268,8 @@ map<pair<int, int>, vector<pair<int, int>>> mazeMakerWilson(map<pair<int, int>, 
                 }
             }
 
-            if (pairsEqual(&start, &end)) {
+            //if (pairsEqual(&start, &end)) {
+            if (start == end) {
                 startLoc=0;
                 shuffle(begin(connectedParts), connectedParts.end(), default_random_engine { random_device {}()});
                 if (disconnectedParts.size() > 0) {
@@ -316,7 +277,7 @@ map<pair<int, int>, vector<pair<int, int>>> mazeMakerWilson(map<pair<int, int>, 
                 }
                 break;
             }
-            //cout << "FOUND?" << endl;
+            
             if (!found) {
                 startLoc++;
                 break;
@@ -344,7 +305,6 @@ map<pair<int, int>, vector<pair<int, int>>> removeDeadEnds(map<pair<int, int>, v
     }
     return graph;
 }
-
 
 vector<pair<int, int>> mazeSolver(map<pair<int, int>, vector<pair<int, int>>> * graph, pair<int, int> * location, pair<int, int> * goal, vector<pair<int, int>> * visited) {
     if (pairsEqual(location, goal)) {
@@ -375,22 +335,27 @@ vector<pair<int, int>> mazeSolver(map<pair<int, int>, vector<pair<int, int>>> * 
 
 int main() {
     cout << "Making your maze..." << endl;
-    int xDim = 300;
-    int yDim = 300;
+    int xDim = 30;
+    int yDim = 30;
 
     cout << "With Pointers! SQUIGLLy (" << xDim << "," << yDim << ")" << endl;
-    map<pair<int, int>, vector<pair<int, int>>> walls = graphGen(xDim, yDim);
+    map<tuple<int, int, int>, vector<tuple<int, int, int>>> walls = graphGen(xDim, yDim);
     cout << "Graph Made!" << endl;
-    pair<int, int> location = mp(1,1);
-    map<pair<int, int>, vector<pair<int, int>>> nWalls;
+
+    //pair<int, int> location = mp(1,1);
+    map<tuple<int, int, int>, vector<tuple<int, int, int>>> nWalls;
     try {
         walls = mazeMakerWilson(walls, xDim, yDim);
-        nWalls = removeDeadEnds(walls, xDim, yDim);
     } catch (const exception& e) {
         cout << "Exception " << e.what() << endl;
         return 0;
     }
     cout << "MAZED!" << endl;
+    
+
+
+
+    /*
     
     makePic(walls, xDim, yDim, "Maze");
     makePic(nWalls, xDim, yDim, "MazeUndead");
@@ -418,6 +383,6 @@ int main() {
     makePic(walls, xDim, yDim, "MazeSolved", paths, solution);
 
     cout << "PATH FOUND!";
-
+    */
     return 0;
 } 
